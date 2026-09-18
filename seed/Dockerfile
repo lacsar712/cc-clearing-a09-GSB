@@ -1,6 +1,6 @@
 FROM docker.m.daocloud.io/library/alpine:latest
 
-RUN apk add --no-cache curl
+RUN apk add --no-cache curl jq
 
 WORKDIR /seed
 COPY seed.sh /seed/seed.sh

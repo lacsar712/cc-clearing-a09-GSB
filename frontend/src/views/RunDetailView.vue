@@ -7,6 +7,12 @@
       <el-button @click="$router.back()">返回</el-button>
       <el-button @click="load">刷新</el-button>
       <el-button
+        v-if="detail"
+        type="primary"
+        plain
+        @click="$router.push({ name: 'reconciliation', query: { run: detail.run.runId } })"
+      >回执对账</el-button>
+      <el-button
         type="success"
         :disabled="!auth.isOperator || detail?.run?.status !== 'COMPLETED' || alreadySettled"
         :loading="settling"

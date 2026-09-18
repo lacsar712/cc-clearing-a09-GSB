@@ -4,10 +4,12 @@ import com.clearing.netting.adapter.out.persistence.entity.MemberJpaEntity;
 import com.clearing.netting.adapter.out.persistence.entity.NetPositionJpaEntity;
 import com.clearing.netting.adapter.out.persistence.entity.NettingRunJpaEntity;
 import com.clearing.netting.adapter.out.persistence.entity.ObligationJpaEntity;
+import com.clearing.netting.adapter.out.persistence.entity.ReceiptRecordJpaEntity;
 import com.clearing.netting.adapter.out.persistence.entity.UserJpaEntity;
 import com.clearing.netting.domain.model.Member;
 import com.clearing.netting.domain.model.NetPosition;
 import com.clearing.netting.domain.model.NettingRun;
+import com.clearing.netting.domain.model.ReceiptRecord;
 import com.clearing.netting.domain.model.TradeObligation;
 import com.clearing.netting.domain.model.UserAccount;
 
@@ -105,6 +107,27 @@ final class PersistenceMapper {
         e.setUsername(u.getUsername());
         e.setPasswordHash(u.getPasswordHash());
         e.setRole(u.getRole());
+        return e;
+    }
+
+    static ReceiptRecord toDomain(ReceiptRecordJpaEntity e) {
+        return new ReceiptRecord(
+                e.getReceiptId(),
+                e.getRunId(),
+                e.getMemberId(),
+                e.getNetAmount(),
+                e.getCreatedAt(),
+                e.getUpdatedAt());
+    }
+
+    static ReceiptRecordJpaEntity toEntity(ReceiptRecord r) {
+        ReceiptRecordJpaEntity e = new ReceiptRecordJpaEntity();
+        e.setReceiptId(r.getReceiptId());
+        e.setRunId(r.getRunId());
+        e.setMemberId(r.getMemberId());
+        e.setNetAmount(r.getNetAmount());
+        e.setCreatedAt(r.getCreatedAt());
+        e.setUpdatedAt(r.getUpdatedAt());
         return e;
     }
 }
