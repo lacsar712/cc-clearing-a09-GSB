@@ -55,5 +55,38 @@ curl -sf -X POST "${BACKEND_URL}/api/obligations" -H "$AUTH" -H "Content-Type: a
 curl -sf -X POST "${BACKEND_URL}/api/obligations" -H "$AUTH" -H "Content-Type: application/json" \
   -d "{\"payerMemberId\":\"${ID1}\",\"payeeMemberId\":\"${ID3}\",\"currency\":\"USD\",\"amount\":25000.00000000,\"tradeDate\":\"${TRADE_DATE}\",\"settleDate\":\"${SETTLE_DATE}\"}" >/dev/null
 
+echo "Seeding EUR obligations for reconciliation demo..."
+curl -sf -X POST "${BACKEND_URL}/api/obligations" -H "$AUTH" -H "Content-Type: application/json" \
+  -d "{\"payerMemberId\":\"${ID1}\",\"payeeMemberId\":\"${ID2}\",\"currency\":\"EUR\",\"amount\":50000.00000000,\"tradeDate\":\"${TRADE_DATE}\",\"settleDate\":\"${SETTLE_DATE}\"}" >/dev/null
+curl -sf -X POST "${BACKEND_URL}/api/obligations" -H "$AUTH" -H "Content-Type: application/json" \
+  -d "{\"payerMemberId\":\"${ID2}\",\"payeeMemberId\":\"${ID3}\",\"currency\":\"EUR\",\"amount\":30000.00000000,\"tradeDate\":\"${TRADE_DATE}\",\"settleDate\":\"${SETTLE_DATE}\"}" >/dev/null
+curl -sf -X POST "${BACKEND_URL}/api/obligations" -H "$AUTH" -H "Content-Type: application/json" \
+  -d "{\"payerMemberId\":\"${ID3}\",\"payeeMemberId\":\"${ID1}\",\"currency\":\"EUR\",\"amount\":20000.00000000,\"tradeDate\":\"${TRADE_DATE}\",\"settleDate\":\"${SETTLE_DATE}\"}" >/dev/null
+
+echo "Running EUR netting run..."
+RUN=$(curl -sf -X POST "${BACKEND_URL}/api/netting-runs" -H "$AUTH" -H "Content-Type: application/json" \
+  -d "{\"settleDate\":\"${SETTLE_DATE}\",\"currency\":\"EUR\"}")
+RUN_ID=$(printf '%s' "$RUN" | sed -n 's/.*"runId":"\([^"]*\)".*/\1/p')
+
+echo "Fetching EUR net positions for run ${RUN_ID}..."
+POSITIONS=$(curl -sf "${BACKEND_URL}/api/netting-runs/${RUN_ID}/positions" -H "$AUTH")
+NET1=$(printf '%s' "$POSITIONS" | sed -n "s/.*\"memberId\":\"${ID1}\",\"currency\":\"EUR\",\"netAmount\":\([0-9.-]*\).*/\1/p")
+NET2=$(printf '%s' "$POSITIONS" | sed -n "s/.*\"memberId\":\"${ID2}\",\"currency\":\"EUR\",\"netAmount\":\([0-9.-]*\).*/\1/p")
+NET3=$(printf '%s' "$POSITIONS" | sed -n "s/.*\"memberId\":\"${ID3}\",\"currency\":\"EUR\",\"netAmount\":\([0-9.-]*\).*/\1/p")
+
+if [ -z "$RUN_ID" ] || [ -z "$NET1" ] || [ -z "$NET2" ] || [ -z "$NET3" ]; then
+  echo "Seed failed: could not resolve EUR run positions"
+  echo "$POSITIONS"
+  exit 1
+fi
+
+echo "Seeding matched receipts (run ${RUN_ID})..."
+curl -sf -X POST "${BACKEND_URL}/api/netting-runs/${RUN_ID}/receipts" -H "$AUTH" -H "Content-Type: application/json" \
+  -d "{\"memberId\":\"${ID1}\",\"reportedAmount\":${NET1}}" >/dev/null
+curl -sf -X POST "${BACKEND_URL}/api/netting-runs/${RUN_ID}/receipts" -H "$AUTH" -H "Content-Type: application/json" \
+  -d "{\"memberId\":\"${ID2}\",\"reportedAmount\":${NET2}}" >/dev/null
+curl -sf -X POST "${BACKEND_URL}/api/netting-runs/${RUN_ID}/receipts" -H "$AUTH" -H "Content-Type: application/json" \
+  -d "{\"memberId\":\"${ID3}\",\"reportedAmount\":${NET3}}" >/dev/null
+
 echo "Seed completed successfully"
 exit 0

@@ -4,10 +4,12 @@ import com.clearing.netting.adapter.out.persistence.entity.MemberJpaEntity;
 import com.clearing.netting.adapter.out.persistence.entity.NetPositionJpaEntity;
 import com.clearing.netting.adapter.out.persistence.entity.NettingRunJpaEntity;
 import com.clearing.netting.adapter.out.persistence.entity.ObligationJpaEntity;
+import com.clearing.netting.adapter.out.persistence.entity.ReceiptJpaEntity;
 import com.clearing.netting.adapter.out.persistence.entity.UserJpaEntity;
 import com.clearing.netting.domain.model.Member;
 import com.clearing.netting.domain.model.NetPosition;
 import com.clearing.netting.domain.model.NettingRun;
+import com.clearing.netting.domain.model.ReceiptEntry;
 import com.clearing.netting.domain.model.TradeObligation;
 import com.clearing.netting.domain.model.UserAccount;
 
@@ -92,6 +94,29 @@ final class PersistenceMapper {
         e.setMemberId(p.getMemberId());
         e.setCurrency(p.getCurrency());
         e.setNetAmount(p.getNetAmount());
+        return e;
+    }
+
+    static ReceiptEntry toDomain(ReceiptJpaEntity e) {
+        return new ReceiptEntry(
+                e.getReceiptId(),
+                e.getRunId(),
+                e.getMemberId(),
+                e.getCurrency(),
+                e.getReportedAmount(),
+                e.getCreatedBy(),
+                e.getCreatedAt());
+    }
+
+    static ReceiptJpaEntity toEntity(ReceiptEntry r) {
+        ReceiptJpaEntity e = new ReceiptJpaEntity();
+        e.setReceiptId(r.getReceiptId());
+        e.setRunId(r.getRunId());
+        e.setMemberId(r.getMemberId());
+        e.setCurrency(r.getCurrency());
+        e.setReportedAmount(r.getReportedAmount());
+        e.setCreatedBy(r.getCreatedBy());
+        e.setCreatedAt(r.getCreatedAt());
         return e;
     }
 
